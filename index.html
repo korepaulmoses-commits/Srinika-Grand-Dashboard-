@@ -14,6 +14,7 @@
         .gold-text { color: #fbbf24; }
         .gold-border { border: 2px solid #fbbf24; }
         .gold-bg { background: #fbbf24; color: #000; border: none; cursor: pointer; }
+        .gold-bg:disabled { background: #4b5563; cursor: not-allowed; }
         header { background: #000; border-bottom: 1px solid #1f2937; padding: 1rem; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 100; }
         main { padding: 1rem; max-width: 1200px; margin: 0 auto; padding-bottom: 6rem; }
         .grid-container { display: grid; grid-template-columns: 1fr; gap: 1rem; }
@@ -22,34 +23,32 @@
         input, select, textarea { background: #1a1a1a !important; border: 1px solid #333 !important; color: white !important; padding: 12px; border-radius: 10px; font-size: 14px; width: 100%; outline: none; margin-bottom: 0.5rem; }
         input:focus { border-color: #fbbf24 !important; }
         
-        /* ROOM MAP GRID */
         #roomMap { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.5rem; margin-bottom: 1rem; max-height: 300px; overflow-y: auto; padding-right: 5px; }
         @media (min-width: 1024px) { #roomMap { grid-template-columns: repeat(8, 1fr); } }
         .room-ready { background: #1f2937; color: #9ca3af; border: 1px solid #374151; padding: 10px; border-radius: 8px; text-align: center; font-weight: bold; cursor: pointer; font-size: 12px; transition: 0.3s; }
         .room-ready:hover { border-color: #fbbf24; color: #fbbf24; }
-        .room-occupied { background: #059669; color: white; padding: 10px; border-radius: 8px; text-align: center; font-size: 12px; font-weight: bold; cursor: default; }
+        .room-occupied { background: #b91c1c; color: white; padding: 10px; border-radius: 8px; text-align: center; font-size: 12px; font-weight: bold; cursor: not-allowed; }
 
-        /* TABLES */
         .log-table-container { overflow-x: auto; max-height: 250px; border-radius: 8px; border: 1px solid #1f2937; }
         .log-table { width: 100%; border-collapse: collapse; font-size: 11px; min-width: 400px; }
         .log-table th { text-align: left; color: #fbbf24; padding: 10px; border-bottom: 1px solid #333; position: sticky; top: 0; background: #111; z-index: 10; }
         .log-table td { padding: 10px; border-bottom: 1px solid #1f2937; color: #ccc; }
 
-        /* BILL PREVIEW */
         #billSection { position: fixed; inset: 0; background: rgba(0,0,0,0.98); z-index: 1000; padding: 10px; overflow-y: auto; display: flex; flex-direction: column; align-items: center; }
-        #printArea { background: white; color: black; padding: 15px; width: 100%; max-width: 800px; font-family: 'Arial', sans-serif; position: relative; border: 1px solid #ccc; }
-        .bill-header { text-align: center; margin-bottom: 10px; }
-        .bill-grid { display: grid; grid-template-columns: 1fr 1fr; border: 1px solid black; font-size: 10px; }
-        .bill-box { padding: 5px; border: 0.5px solid black; }
-        .inv-table { width: 100%; border-collapse: collapse; margin-top: 5px; }
-        .inv-table th, .inv-table td { border: 1px solid black; padding: 4px; text-align: center; font-size: 10px; }
-        .total-section { float: right; width: 200px; margin-top: 5px; font-size: 11px; }
-        .total-row { display: flex; justify-content: space-between; padding: 2px 0; border-bottom: 0.5px solid #eee; }
+        #printArea { background: white; color: black; padding: 25px; width: 100%; max-width: 800px; font-family: 'Arial', sans-serif; border: 1px solid #ccc; }
+        .bill-header { text-align: center; margin-bottom: 15px; }
+        .bill-grid { display: grid; grid-template-columns: 1fr 1fr; border: 1px solid black; font-size: 11px; }
+        .bill-box { padding: 8px; border: 0.5px solid black; min-height: 80px; }
+        .inv-table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        .inv-table th, .inv-table td { border: 1px solid black; padding: 8px; text-align: center; font-size: 11px; }
+        .total-section { float: right; width: 250px; margin-top: 10px; font-size: 12px; }
+        .total-row { display: flex; justify-content: space-between; padding: 4px 0; border-bottom: 0.5px solid #eee; }
         
         @media print { 
             body * { visibility: hidden; } 
             #printArea, #printArea * { visibility: visible; } 
-            #printArea { position: absolute; left: 0; top: 0; width: 100%; border: none; } 
+            #printArea { position: fixed; left: 0; top: 0; width: 100%; border: none; } 
+            #billSection { background: white; }
         }
     </style>
 </head>
@@ -60,21 +59,23 @@
         <h1 class="gold-text" style="font-size: 1.2rem; font-weight: 900;">SRINIKA GRAND</h1>
         <p style="font-size: 10px; color: #6b7280;">GST: 36AEXFS9727D1ZA</p>
     </div>
-    <input type="date" id="chartFilterDate" style="width: auto; margin: 0; padding: 5px;" onchange="initChart()">
+    <button onclick="location.reload()" class="gold-bg" style="padding: 5px 15px; font-size: 12px; border-radius: 5px;">REFRESH DATA</button>
 </header>
 
 <main>
     <div class="card full-width" style="margin-bottom: 1rem;">
-        <h3 class="gold-text" style="font-size: 12px; margin-bottom: 10px;">DAILY REVENUE</h3>
+        <h3 class="gold-text" style="font-size: 12px; margin-bottom: 10px;">REVENUE OVERVIEW</h3>
         <div style="height: 180px;"><canvas id="finChart"></canvas></div>
     </div>
 
     <div class="grid-container">
+        <!-- Room Map Card -->
         <div class="card">
-            <h3 id="occupancyStats" class="gold-text" style="font-size: 12px; margin-bottom: 10px;">LOADING MAP...</h3>
+            <h3 id="occupancyStats" class="gold-text" style="font-size: 12px; margin-bottom: 10px;">LOADING...</h3>
             <div id="roomMap"></div>
         </div>
 
+        <!-- Check-in Card -->
         <div class="card gold-border">
             <h3 class="gold-text" style="font-size: 12px; margin-bottom: 10px;">GUEST CHECK-IN</h3>
             <select id="roomSelect" class="gold-text"></select>
@@ -94,8 +95,9 @@
             <button onclick="previewBooking()" class="gold-bg" style="width:100%; padding: 12px; font-weight: 900; border-radius: 8px;">GENERATE BILL</button>
         </div>
 
+        <!-- Logs -->
         <div class="card">
-            <h3 class="gold-text" style="font-size: 12px; margin-bottom: 10px;">RECENT GUEST LOG</h3>
+            <h3 class="gold-text" style="font-size: 12px; margin-bottom: 10px;">RECENT GUESTS</h3>
             <div class="log-table-container">
                 <table class="log-table" id="guestLogTable">
                     <thead><tr><th>Room</th><th>Guest</th><th>Check-In</th><th>Status</th></tr></thead>
@@ -104,11 +106,12 @@
             </div>
         </div>
 
+        <!-- Expenditure -->
         <div class="card">
             <h3 class="gold-text" style="font-size: 12px; margin-bottom: 10px;">ADD EXPENDITURE</h3>
             <input id="expAmt" type="number" placeholder="Expense Amount ₹">
-            <textarea id="expNote" placeholder="Expense Note / Reason" rows="1"></textarea>
-            <button onclick="saveExpenditure()" class="gold-bg" style="width:100%; padding: 10px; font-weight: bold; border-radius: 10px; margin-bottom: 10px;">SAVE EXPENSE</button>
+            <textarea id="expNote" placeholder="Reason (e.g., Cleaning Supplies)" rows="1"></textarea>
+            <button id="expBtn" onclick="saveExpenditure()" class="gold-bg" style="width:100%; padding: 10px; font-weight: bold; border-radius: 10px; margin-bottom: 10px;">SAVE EXPENSE</button>
             <div class="log-table-container">
                 <table class="log-table" id="expTable">
                     <thead><tr><th>Date</th><th>Reason</th><th>Amount</th></tr></thead>
@@ -119,53 +122,54 @@
     </div>
 </main>
 
+<!-- Bill Preview Overlay -->
 <div id="billSection" class="hidden">
     <div id="printArea">
         <div class="bill-header">
-            <h2 style="font-size: 18px;">SRINIKA GRAND</h2>
-            <p style="font-size: 10px;">H.NO.23-123/1, MADHURA NAGAR, SHAMSHABAD, HYDERABAD-501218.</p>
-            <p style="font-size: 10px;">Ph: 95059 95058 | GST: 36AEXFS9727D1ZA</p>
+            <h2 style="font-size: 20px; letter-spacing: 2px;">SRINIKA GRAND</h2>
+            <p style="font-size: 11px;">H.NO.23-123/1, MADHURA NAGAR, SHAMSHABAD, HYDERABAD-501218.</p>
+            <p style="font-size: 11px;">Ph: 95059 95058 | GST: 36AEXFS9727D1ZA</p>
         </div>
-        <div style="display: flex; justify-content: space-between; font-size: 10px; font-weight: bold; margin-bottom: 2px;">
+        <div style="display: flex; justify-content: space-between; font-size: 11px; font-weight: bold; margin-bottom: 5px;">
             <span>INVOICE NO: <span id="b_invoice"></span></span>
+            <span>DATE: <span id="b_curr_date"></span></span>
         </div>
         <div class="bill-grid">
             <div class="bill-box">
                 <strong>GUEST DETAILS:-</strong><br>
-                NAME 1: <span id="b_g1"></span><br>
+                NAME: <span id="b_g1"></span><br>
                 CONTACT: <span id="b_mob"></span><br>
                 CH.IN: <span id="b_cin"></span><br>
                 CH.OUT: <span id="b_cout"></span>
             </div>
             <div class="bill-box">
-                <strong>ROOM NO:</strong> <span id="b_room"></span><br>
+                <strong>ROOM NO:</strong> <span id="b_room" style="font-size:14px;"></span><br>
                 <strong>ADDRESS:</strong> <span id="b_addr"></span><br>
-                <hr>
                 <strong>COMPANY:</strong> <span id="b_comp"></span><br>
-                <strong>GST:</strong> <span id="b_compGst"></span>
+                <strong>CO. GST:</strong> <span id="b_compGst"></span>
             </div>
         </div>
         <table class="inv-table">
             <thead><tr><th>S.NO</th><th>DESCRIPTION</th><th>TARIFF</th><th>DAYS</th><th>TOTAL</th></tr></thead>
             <tbody>
-                <tr style="height: 80px; vertical-align: top;">
+                <tr style="height: 100px; vertical-align: top;">
                     <td>1</td><td>DELUXE ROOM STAY</td><td id="b_tariff"></td><td id="b_days"></td><td id="b_sub"></td>
                 </tr>
             </tbody>
         </table>
         <div class="total-section">
             <div class="total-row"><span>SUB TOTAL</span><span id="b_sub_final"></span></div>
-            <div class="total-row"><span>TAX (SGST/CGST)</span><span>5%</span></div>
-            <div class="total-row" style="font-weight: bold; background: #eee;"><span>NET PAYABLE</span><span id="b_net"></span></div>
+            <div class="total-row"><span>TAX (SGST+CGST 12%)</span><span id="b_tax"></span></div>
+            <div class="total-row" style="font-weight: bold; font-size: 14px; border-top: 2px solid black; margin-top: 5px;"><span>NET PAYABLE</span><span id="b_net"></span></div>
         </div>
-        <div style="margin-top: 100px; font-size: 10px; display: flex; justify-content: space-between;">
-            <span>GUEST SIGNATURE</span>
-            <span>MANAGER SIGNATURE</span>
+        <div style="margin-top: 80px; font-size: 11px; display: flex; justify-content: space-between;">
+            <p>___________________<br>GUEST SIGNATURE</p>
+            <p>___________________<br>MANAGER SIGNATURE</p>
         </div>
     </div>
-    <div style="display:flex; gap:10px; margin-top:10px;">
-        <button id="confirmBtn" onclick="saveDataToSupabase()" class="gold-bg" style="padding:15px 30px;">CONFIRM & PRINT</button>
-        <button onclick="closePreview()" style="background:#555; color:white; border:none; padding:15px;">EDIT</button>
+    <div style="display:flex; gap:10px; margin-top:20px;">
+        <button id="confirmBtn" onclick="saveDataToSupabase()" class="gold-bg" style="padding:15px 40px; font-weight: bold;">PRINT & SAVE</button>
+        <button onclick="closePreview()" style="background:#dc2626; color:white; border:none; padding:15px 30px; border-radius: 5px; cursor: pointer;">EDIT</button>
     </div>
 </div>
 
@@ -186,26 +190,35 @@ function previewId(input) {
 }
 
 async function fetchNextInvoiceNumber() {
-    const { data } = await _supabase.from('SGDB').select('invoice_no').order('invoice_no', { ascending: false }).limit(1);
-    nextInvoiceNumber = (data && data.length > 0) ? data[0].invoice_no + 1 : 1000;
+    try {
+        const { data } = await _supabase.from('SGDB').select('invoice_no').order('invoice_no', { ascending: false }).limit(1);
+        nextInvoiceNumber = (data && data.length > 0) ? parseInt(data[0].invoice_no) + 1 : 1000;
+    } catch (e) { console.error(e); }
 }
 
 async function refreshLiveMapAndLog() {
     const map = document.getElementById('roomMap'), select = document.getElementById('roomSelect');
     const guestTable = document.querySelector('#guestLogTable tbody');
-    map.innerHTML = ''; select.innerHTML = '<option value="">Select Room</option>';
+    
+    map.innerHTML = 'Loading...';
     guestTable.innerHTML = '';
+    
+    const { data: guests, error } = await _supabase.from('SGDB').select('*').order('id', { ascending: false });
+    if (error) return;
 
-    let rooms = []; for (let f = 1; f <= 3; f++) for (let r = 1; r <= 16; r++) rooms.push(f * 100 + r);
-    const { data: guests } = await _supabase.from('SGDB').select('*').order('id', { ascending: false });
+    map.innerHTML = '';
+    select.innerHTML = '<option value="">Select Room</option>';
+    
     const now = new Date();
     let occupiedCount = 0;
+    let rooms = []; 
+    for (let f = 1; f <= 3; f++) for (let r = 1; r <= 16; r++) rooms.push(f * 100 + r);
 
     rooms.forEach(roomNo => {
         const active = guests?.find(g => g.room == roomNo && new Date(g['Check out time']) > now);
         if (active) { 
             occupiedCount++; 
-            map.innerHTML += `<div class="room-occupied">${roomNo}</div>`; 
+            map.innerHTML += `<div class="room-occupied" title="Guest: ${active.guest}">${roomNo}</div>`; 
         } else { 
             map.innerHTML += `<div class="room-ready" onclick="document.getElementById('roomSelect').value='${roomNo}'">${roomNo}</div>`;
             select.innerHTML += `<option value="${roomNo}">${roomNo}</option>`;
@@ -214,87 +227,125 @@ async function refreshLiveMapAndLog() {
 
     document.getElementById('occupancyStats').innerText = `${occupiedCount} / 48 ROOMS OCCUPIED`;
     
-    guests?.slice(0, 15).forEach(g => {
-        const status = new Date(g['Check out time']) > now ? "Active" : "Checked-Out";
-        guestTable.innerHTML += `<tr><td>${g.room}</td><td>${g.guest}</td><td>${new Date(g['Check IN time']).toLocaleDateString()}</td><td>${status}</td></tr>`;
+    guests?.slice(0, 10).forEach(g => {
+        const isOut = new Date(g['Check out time']) < now;
+        guestTable.innerHTML += `<tr><td>${g.room}</td><td>${g.guest}</td><td>${g['Check IN time'].split('T')[0]}</td><td style="color:${isOut?'#6b7280':'#fbbf24'}">${isOut?'Checked-Out':'Active'}</td></tr>`;
     });
 }
 
 async function saveExpenditure() {
-    const amt = document.getElementById('expAmt').value, note = document.getElementById('expNote').value;
-    if(!amt || !note) return alert("Fill all fields");
-    const { error } = await _supabase.from('Expenditure').insert([{ amount: amt, note: note, date: new Date().toISOString() }]);
-    if(!error) location.reload();
+    const amt = document.getElementById('expAmt').value;
+    const note = document.getElementById('expNote').value;
+    const btn = document.getElementById('expBtn');
+
+    if(!amt || !note) return alert("Please enter amount and reason");
+    
+    btn.disabled = true; btn.innerText = "Saving...";
+    const { error } = await _supabase.from('Expenditure').insert([{ amount: parseFloat(amt), note: note, date: new Date().toISOString() }]);
+    
+    if(!error) {
+        document.getElementById('expAmt').value = '';
+        document.getElementById('expNote').value = '';
+        await loadExpenditures();
+    }
+    btn.disabled = false; btn.innerText = "SAVE EXPENSE";
 }
 
 async function loadExpenditures() {
     const tbody = document.querySelector('#expTable tbody');
-    const { data } = await _supabase.from('Expenditure').select('*').order('date', { ascending: false });
+    const { data } = await _supabase.from('Expenditure').select('*').order('date', { ascending: false }).limit(20);
     tbody.innerHTML = '';
-    data?.forEach(e => { tbody.innerHTML += `<tr><td>${new Date(e.date).toLocaleDateString()}</td><td>${e.note}</td><td>₹${e.amount}</td></tr>`; });
+    data?.forEach(e => { 
+        tbody.innerHTML += `<tr><td>${new Date(e.date).toLocaleDateString()}</td><td>${e.note}</td><td>₹${e.amount}</td></tr>`; 
+    });
 }
 
 function previewBooking() {
-    const data = {
-        room: document.getElementById('roomSelect').value,
-        guest: document.getElementById('gName1').value,
-        guest2: document.getElementById('gName2').value || "-",
+    const room = document.getElementById('roomSelect').value;
+    const guest = document.getElementById('gName1').value;
+    const tariff = parseFloat(document.getElementById('rentAmt').value);
+    const cin = document.getElementById('cinDate').value;
+    const cout = document.getElementById('coutDate').value;
+
+    if(!room || !guest || !tariff || !cout) return alert("Fill Room, Guest Name, Tariff and Checkout Date!");
+
+    const days = Math.max(1, Math.ceil(Math.abs(new Date(cout) - new Date(cin)) / (1000 * 60 * 60 * 24)));
+    const subTotal = tariff * days;
+    const tax = subTotal * 0.12; // 12% GST
+    const net = subTotal + tax;
+
+    currentBooking = { 
+        room, guest, guest2: document.getElementById('gName2').value || "-",
         mob: document.getElementById('gMob').value,
         addr: document.getElementById('gAddr').value,
         comp: document.getElementById('compName').value || "-",
         gst: document.getElementById('compGst').value || "-",
-        tariff: parseFloat(document.getElementById('rentAmt').value),
-        cin: document.getElementById('cinDate').value,
-        cout: document.getElementById('coutDate').value
+        tariff, cin, cout, days, net, subTotal, tax
     };
 
-    if(!data.room || !data.guest || isNaN(data.tariff)) return alert("Missing Room/Guest/Tariff");
-    const days = Math.ceil(Math.abs(new Date(data.cout) - new Date(data.cin)) / (1000 * 60 * 60 * 24)) || 1;
-    currentBooking = { ...data, net: data.tariff * days, days };
-
     document.getElementById('b_invoice').innerText = nextInvoiceNumber;
-    document.getElementById('b_g1').innerText = data.guest;
-    document.getElementById('b_mob').innerText = data.mob;
-    document.getElementById('b_cin').innerText = data.cin.replace('T',' ');
-    document.getElementById('b_cout').innerText = data.cout.replace('T',' ');
-    document.getElementById('b_room').innerText = data.room;
-    document.getElementById('b_addr').innerText = data.addr;
-    document.getElementById('b_comp').innerText = data.comp;
-    document.getElementById('b_compGst').innerText = data.gst;
-    document.getElementById('b_tariff').innerText = data.tariff;
+    document.getElementById('b_curr_date').innerText = new Date().toLocaleDateString();
+    document.getElementById('b_g1').innerText = currentBooking.guest;
+    document.getElementById('b_mob').innerText = currentBooking.mob;
+    document.getElementById('b_cin').innerText = cin.replace('T',' ');
+    document.getElementById('b_cout').innerText = cout.replace('T',' ');
+    document.getElementById('b_room').innerText = room;
+    document.getElementById('b_addr').innerText = currentBooking.addr;
+    document.getElementById('b_comp').innerText = currentBooking.comp;
+    document.getElementById('b_compGst').innerText = currentBooking.gst;
+    document.getElementById('b_tariff').innerText = tariff;
     document.getElementById('b_days').innerText = days;
-    document.getElementById('b_sub').innerText = currentBooking.net;
-    document.getElementById('b_sub_final').innerText = currentBooking.net;
-    document.getElementById('b_net').innerText = currentBooking.net;
+    document.getElementById('b_sub').innerText = subTotal.toFixed(2);
+    document.getElementById('b_sub_final').innerText = subTotal.toFixed(2);
+    document.getElementById('b_tax').innerText = tax.toFixed(2);
+    document.getElementById('b_net').innerText = net.toFixed(2);
 
     document.getElementById('billSection').classList.remove('hidden');
 }
 
 async function saveDataToSupabase() {
-    const btn = document.getElementById('confirmBtn'); btn.disabled = true;
+    const btn = document.getElementById('confirmBtn'); 
+    btn.disabled = true; btn.innerText = "Saving...";
+
     let imageUrl = null;
     const file = document.getElementById('customerId').files[0];
     if (file) {
-        const fName = `${Date.now()}_${file.name}`;
+        const fName = `id_${Date.now()}_${file.name}`;
         const { data: up } = await _supabase.storage.from('customer_ids').upload(fName, file);
         if (up) imageUrl = _supabase.storage.from('customer_ids').getPublicUrl(fName).data.publicUrl;
     }
+
     const { error } = await _supabase.from('SGDB').insert([{
-        invoice_no: nextInvoiceNumber, room: currentBooking.room, guest: currentBooking.guest, guest2: currentBooking.guest2,
-        mob: currentBooking.mob, "House Address": currentBooking.addr, "Company Name": currentBooking.comp, 
-        "Company GST Number": currentBooking.gst, "Check IN time": currentBooking.cin, "Check out time": currentBooking.cout, 
+        invoice_no: nextInvoiceNumber, room: currentBooking.room, guest: currentBooking.guest, 
+        guest2: currentBooking.guest2, mob: currentBooking.mob, "House Address": currentBooking.addr, 
+        "Company Name": currentBooking.comp, "Company GST Number": currentBooking.gst, 
+        "Check IN time": currentBooking.cin, "Check out time": currentBooking.cout, 
         amount: currentBooking.net, date: new Date().toISOString().split('T')[0], id_image_url: imageUrl
     }]);
-    if (error) alert(error.message); else { window.print(); location.reload(); }
+
+    if (error) {
+        alert("Error saving: " + error.message);
+        btn.disabled = false;
+    } else {
+        window.print();
+        location.reload(); 
+    }
 }
 
 async function initChart() {
     const ctx = document.getElementById('finChart').getContext('2d');
     const { data } = await _supabase.from('SGDB').select('amount, date');
-    let gd = {}; data?.forEach(r => { gd[r.date] = (gd[r.date] || 0) + r.amount; });
-    const lbls = Object.keys(gd).slice(-7), vals = lbls.map(l => gd[l]);
+    let gd = {}; 
+    data?.forEach(r => { gd[r.date] = (gd[r.date] || 0) + r.amount; });
+    const lbls = Object.keys(gd).sort().slice(-7);
+    const vals = lbls.map(l => gd[l]);
+
     if(chartObj) chartObj.destroy();
-    chartObj = new Chart(ctx, { type: 'bar', data: { labels: lbls, datasets: [{ label: 'Revenue', data: vals, backgroundColor: '#fbbf24' }] }, options: { responsive: true, maintainAspectRatio: false } });
+    chartObj = new Chart(ctx, { 
+        type: 'line', 
+        data: { labels: lbls, datasets: [{ label: 'Daily Revenue ₹', data: vals, borderColor: '#fbbf24', tension: 0.4, fill: true, backgroundColor: 'rgba(251, 191, 36, 0.1)' }] }, 
+        options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true, grid: { color: '#222' } } } } 
+    });
 }
 
 function closePreview() { document.getElementById('billSection').classList.add('hidden'); }
@@ -302,6 +353,10 @@ function closePreview() { document.getElementById('billSection').classList.add('
 window.onload = async () => {
     const now = new Date();
     document.getElementById('cinDate').value = new Date(now.getTime() - now.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+    // Set default checkout to tomorrow
+    const tomorrow = new Date(now.getTime() + 86400000);
+    document.getElementById('coutDate').value = new Date(tomorrow.getTime() - tomorrow.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+    
     await fetchNextInvoiceNumber();
     await refreshLiveMapAndLog();
     await loadExpenditures();
@@ -310,3 +365,4 @@ window.onload = async () => {
 </script>
 </body>
 </html>
+
